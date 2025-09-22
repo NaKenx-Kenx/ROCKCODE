@@ -278,7 +278,20 @@ def open_chatmenu():
     pass
 
 def set_usn():
-    pass
+    clear()
+    print(center_text("<|change your username|>","-"))
+    stats = input("change [Y/N: ]")
+    while stats.capitalize() != "Y" and stats.capitalize() != "N":
+      stats =input("change [Y/N: ]")
+    value = stats.capitalize()
+    if value == "Y":
+      global USERNAME
+      USERNAME = input("enter username: ")
+      send_data({"name":USERNAME},f"/user/{get_device_code()}.json")
+      open_onlinemenu()
+    else:
+      animated_countdown(1,0.25," Back to OnlineMenu")
+      open_onlinemenu()
 
 def open_gamemenu():
     pass
