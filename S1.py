@@ -249,7 +249,7 @@ def open_custom_static_menu(title:str,subtitle:str,prompt:str,openstr:str,closes
     print(openstr)
     print_array(makelistray(listoption))
     print(closestr)
-    option:int = inputnum(prompt,-1,-1)
+    option:int = inputnum(prompt,-1,0)
     if option == -1:
         backmenu()
 
