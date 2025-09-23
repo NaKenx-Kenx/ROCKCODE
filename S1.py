@@ -1,6 +1,8 @@
-import sys , time , os , random , string , socket , platform , requests , math , json , uuid , hashlib
+import sys , time , os , random , string , socket , platform , requests , math , json , uuid , hashlib , pyperclip
+from datetime import datetime
 from getpass import getpass
 
+ONLINE = False
 BASE_URL = "https://talksupsoc-default-rtdb.firebaseio.com/"
 # Warna teks (foreground)
 BLACK   = "\033[30m"
@@ -83,6 +85,9 @@ JUDUL_HACK = """    __  _____   ________ __ __    ________________
  / __  / ___ / /___/ /| |/ /___/ /___ ___/ /__/ / 
 /_/ /_/_/  |_\____/_/ |_/_____/_____//____/____/  
                                                   """
+
+def get_datetime() -> str:
+    return str(datetime.now().strftime("%Y%m%d%H%M%S"))
 
 def clamp(x, lo, hi):
     if lo > hi:
@@ -183,6 +188,20 @@ def logos(duration:float):
         sys.stdout.flush()
         time.sleep(0.025)
 
+def erases():
+    sys.stdout.write("\033[F")
+    sys.stdout.write("\033[K")
+
+def internet_check(host="8.8.8.8", port=53, timeout=3):
+    global ONLINE
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET ,
+                      socket.SOCK_STREAM).connect((host, port))
+        ONLINE = True
+    except socket.error:
+        ONLINE = False
+
 def animated_text(duration:float,text:str):
     for dar in text:
         print(dar,end="",flush=True)
@@ -220,6 +239,12 @@ def makelistray(namelist:list) -> list:
         lisall.append(create_menuinlist(namelist[a],a))
     return lisall
 
+def makelistminray(namelist:list,pf2:str="") -> list:
+    lisall = []
+    for a in range(len(namelist)):
+        lisall.append(create_minlist(namelist[a],pf2))
+    return lisall
+
 def create_minlist(pc1:str,pc2:str) -> str:
     return f"\033[38;5;15;48;5;236m> {pc1} => {pc2}\033[0m\n   \033[90m{random_string(50)}\n {random_string(50)}{RESET}"
 
@@ -235,11 +260,14 @@ def open_custom_menu(title:str,subtitle:str,prompt:str,openstr:str,closestr:str,
     print(openstr)
     print_array(makelistray(list(dictionaryoption.keys())))
     print(closestr)
-    option:int = inputnum(prompt,-1,len(list(dictionaryoption.keys())))
-    if option == -1:
-        backmenu()
-    else:
-        dictionaryoption[list(dictionaryoption.keys())[option]]()
+    while True:
+        option:int = inputnum(prompt,-1,len(list(dictionaryoption.keys())))
+        if option == -1:
+            backmenu()
+            break
+        else:
+            dictionaryoption[list(dictionaryoption.keys())[option]]()
+            break
 
 def open_custom_static_menu(title:str,subtitle:str,prompt:str,openstr:str,closestr:str,listoption:list,backmenu):
     clear()
@@ -249,7 +277,7 @@ def open_custom_static_menu(title:str,subtitle:str,prompt:str,openstr:str,closes
     print(openstr)
     print_array(makelistray(listoption))
     print(closestr)
-    option:int = inputnum(prompt,-1,0)
+    option:int = inputnum(prompt,-1,-1)
     if option == -1:
         backmenu()
 
@@ -264,9 +292,10 @@ def inputnum(prompt:str,minnum:int=-1,maxnum:int=0) -> int:
 
 def open_menu(menu_index:int):
     listofmenu:list = [
-        create_menu_lister(JUDUL_MAINMENU,center_text("V0.1.21 | By Nakenx/Kenx | PassEncryptKey : uOFeIdQIQXEkqLXocUw49Q== , N4K3NX"),"S (-1 => Close): ",center_text("<|MAIN MENU|>","-"),center_text("<?>","-"),{"[+] HACKERMODES":open_hackmenu,"[+] ONLINEMODES":open_onlinemenu,"[+] ABOUT":open_abtmenu,"[X] EXIT":exit_pls},open_mainmenu),
+        create_menu_lister(JUDUL_MAINMENU,center_text(f"V0.1.21 | By Nakenx/Kenx | PassEncryptKey : uOFeIdQIQXEkqLXocUw49Q== , N4K3NX | {get_device_code()}"),"S (-1 => Close): ",center_text("<|MAIN MENU|>","-"),center_text("<?>","-"),{"[+] HACKERMODES":open_hackmenu,"[+] ONLINEMODES":open_onlinemenu,"[+] ABOUT":open_abtmenu,"[X] EXIT":exit_pls},open_mainmenu),
         create_menu_lister(JUDUL_HACK,center_text("V0.1.21 | By Nakenx/Kenx | PassEncryptKey : uOFeIdQIQXEkqLXocUw49Q== , N4K3NX"),"S (-1 => Close): ",center_text("<|HACKERS|>","-"),center_text("<?>","-"),{"[-] GAMES":open_gamemenu,"[-] VIRUS":open_virusmenu,"[-] DDOS":open_ddosmenu},open_mainmenu),
-        create_menu_lister(JUDUL_FIREBASE,center_text("V0.1.21 | By Nakenx/Kenx | PassEncryptKey : uOFeIdQIQXEkqLXocUw49Q== , N4K3NX"),"S (-1 => Close): ",center_text("<|FIREBASE ONLINE|>","-"),center_text(f"< username: {USERNAME} >","-"),{"[-] SET USERNAME":set_usn,"[-] CHAT":open_chatmenu,"[-] ABOUT":open_frabtmenu},open_mainmenu),
+        create_menu_lister(JUDUL_FIREBASE,center_text("V0.1.21 | By Nakenx/Kenx | PassEncryptKey : uOFeIdQIQXEkqLXocUw49Q== , N4K3NX"),"S (-1 => Close): ",center_text("<|FIREBASE ONLINE|>","-"),center_text(f"< username: {USERNAME} >","-"),{"[-] SET USERNAME":set_usn,"[-] CHAT":open_chatmenu,"[-] USERS":open_allusermenu,"[-] ABOUT":open_frabtmenu},open_mainmenu),
+        create_menu_lister(JUDUL_FIREBASE,center_text(f"V0.1.21 | By Nakenx/Kenx | PassEncryptKey : uOFeIdQIQXEkqLXocUw49Q== , N4K3NX | {get_device_code()}"),"S (-1 => Close): ",center_text("<|CHATS|>","-"),center_text(f"< username: {USERNAME}, {get_device_code()} >","-"),{"[-] GLOBAL CHAT":open_globalchat,"[-] PRIVATE CHAT":open_privatechat},open_onlinemenu)
     ]
     menudict:dict = listofmenu[menu_index]
     open_custom_menu(menudict["title"],menudict["subtitle"],menudict["prompt"],menudict["openstr"],menudict["closestr"],menudict["dict"],menudict["backmenu"])
@@ -274,8 +303,73 @@ def open_menu(menu_index:int):
 def open_frabtmenu():
     pass
 
+def open_globalchat():
+    clear()
+    datas = get_globalchat_data()
+    chats = readallchat(datas)
+    print(center_text("<|GLOBAL CHAT ONLINE|>","-"))
+    print(chats)
+    print(center_text('< REFRESH CHAT -> 0, CHAT -> 1 >',"-"))
+    while True:
+        imputna = inputnum("[CLOSE -> -1] $: ",-1,2)
+        match imputna:
+            case -1:
+                open_chatmenu()
+            case 0:
+                open_globalchat()
+            case 1:
+                imputna = input('chat text ["--CC" -> cancel]: ')
+                erases()
+                if imputna.capitalize() == "--CC":
+                    open_globalchat()
+                else:
+                    send_chat(imputna,"global")
+    
+
+def open_privatechat(keychast:str=""):
+    clear()
+    keychat = keychast
+    print(center_text("<|PRIVATE CHAT ONLINE|>","-"))
+    if keychat == "":
+        while True:
+            keychat = input("enter keychat for private chat: ")
+            erases()
+            if get_device_code() in keychat:
+                break
+    datas = get_privatechat_data(keychat)
+    chats = readallchat(datas)
+    print(chats)
+    print(center_text('< REFRESH CHAT -> 0, CHAT -> 1 >',"-"))
+    while True:
+        imputna = inputnum("[CLOSE -> -1] $: ",-1,2)
+        erases()
+        match imputna:
+            case -1:
+                open_chatmenu()
+            case 0:
+                open_privatechat(keychat)
+            case 1:
+                imputna = input('chat text ["--CC" -> cancel]: ')
+                erases()
+                if imputna.capitalize() == "--CC":
+                    open_privatechat()
+                else:
+                    send_chat(imputna,"private")
+
+def send_chat(chat:str,typea:str):
+    send_data({"name":USERNAME,"chat":chat},f"/chat/{typea}/{combine_ignore_order(get_device_code(),get_datetime())}")
+
+def readallchat(datasas:dict) -> str:
+    datasa = ""
+    for a in list(datasas.keys()):
+        datasa += remakechatdata(datasas[a]) + ("\n" if a!=list(datasas.keys())[len(datasas)-1] else "")
+    return datasa
+
+def remakechatdata(data:dict) -> str:
+    return f"{data["name"]}: {data["chat"]}"
+
 def open_chatmenu():
-    pass
+    open_menu(3)
 
 def set_usn():
     clear()
@@ -287,7 +381,7 @@ def set_usn():
     if value == "Y":
       global USERNAME
       USERNAME = input("enter username: ")
-      send_data({"name":USERNAME},f"/user/{get_device_code()}.json")
+      send_data({"name":USERNAME},f"/user/{get_device_code()}")
       open_onlinemenu()
     else:
       animated_countdown(1,0.25," Back to OnlineMenu")
@@ -295,6 +389,35 @@ def set_usn():
 
 def open_gamemenu():
     pass
+
+def createlist_dict(dicts:dict,key:str) -> list:
+    lista = []
+    for a in list(dicts.keys()):
+        lista.append(dicts[a][key])
+    return lista
+
+def open_allusermenu():
+    datas = get_data("/user")
+    allusers = createlist_dict(datas,"name")
+    alludi = list(datas.keys())
+    clear()
+    print(BLUE+center_text("<|ALL USERS|>","-"))
+    print_array(makelistray(allusers))
+    print(center_text("<|ALL USERS|>","-")+RESET)
+    while True:
+        imputext = input("[CLOSE -> -1] [CCP -> get-private-chatkey()]: ")
+        erases()
+
+        if imputext.capitalize().lower() == "ccp":
+            imputext = inputnum("get-private-chatkey id: ",0,len(allusers))
+            erases()
+            pyperclip.copy(combine_ignore_order(get_device_code(),alludi[imputext]))
+            animated_countdown(1,0.175,"private-chatkey was copied.")
+            open_allusermenu()
+            break
+        elif imputext == "-1":
+            open_onlinemenu()
+            break
 
 def open_hackmenu():
     open_menu(1)
@@ -337,6 +460,9 @@ def exit_pls():
     animated_countdown(1,0.25," EXITING PROGRAM..")
 
 def send_data(data: dict,url:str):
+    if not ONLINE:
+        return
+
     url = f"{BASE_URL}{url}.json"
     r = requests.put(url, data=json.dumps(data))
 
@@ -358,33 +484,46 @@ def get_device_code() -> str:
     return hashlib.sha256(raw).hexdigest()[:16]
 
 def loads():
+    global USERNAME
     loadata = get_data(f"/user/{get_device_code()}/name")
     if not loadata is None:
-        global USERNAME
         USERNAME = loadata
     else:
-        send_data({"name":USERNAME},f"/user/{get_device_code()}.json")
+        send_data({"name":USERNAME},f"/user/{get_device_code()}")
 
 
 
-def get_data(path: str) -> dict | None:
+def get_data(path: str) -> dict :
+    if not ONLINE:
+        return {}
+
     url = f"{BASE_URL}{path}.json"
     resp = requests.get(url)
 
     if resp.status_code == 200:
         data = resp.json()
         if data is None:
-            return None
+            return {}
         return data
     else:
         raise Exception(f"Gagal ambil data: {resp.status_code} - {resp.text}")
 
+def get_globalchat_data() -> dict:
+    return get_data("/chat/global")
+
+def combine_ignore_order(a, b, sep=""):
+    return sep.join(sorted([a, b]))
+
+def get_privatechat_data(chatkey:str) -> dict:
+    return get_data(f"/chat/private/{chatkey}")
+
+internet_check()
 clear()
 logos(1.5)
 loads()
 clear()
 introduce()
-fake_output(125)
+fake_output(random.randint(10,11))
 clear()
 print(DARK_GRAY+center_text(" -<HITCHLESS>- ","-")+RESET)
 ilim = getpass("press [Enter] button to continue...")
